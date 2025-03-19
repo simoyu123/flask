@@ -1,6 +1,15 @@
 from flask import Flask, render_template,request
-
+import sqlite3
 app = Flask(__name__)
+
+con = sqlite3.connect("login.db")
+cur = con.cursor()
+cur.execute("""CREATE TABLE IF NOT EXISTS LOGIN
+                (USERNAME TEXT PRIMARY KEY NOT NULL,
+                 PASSWORD TEXT NOT NULL
+)""")
+con.commit()
+con.close()
 
 @app.route("/signup",methods=["GET","POST"])
 def signup():
