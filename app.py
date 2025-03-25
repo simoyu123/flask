@@ -1,5 +1,6 @@
 from flask import Flask, render_template,request
 import sqlite3
+import hashlib
 app = Flask(__name__)
 
 con = sqlite3.connect("login.db")
@@ -16,18 +17,28 @@ def signup():
     if request.method == "GET":
         return render_template("signup.html")
     else:
-         username = request.form["username"]
-         password = request.form["password"]
+         con = sqlite3.connect("login.db")
+         cur = con.cursor()
+         hash = hashlib.sha256(request.form["password"].encode()).hexdigest()
+         cur.execute("INSERT INTO LOGIN (USERNAME,PASSWORD) VALUES (?,?)",
+                        (request.form["username"],hash))    
+         con.commit()
+         con.close()
          return"SIGNUP SUCCESS"
-    
+      
 @app.route("/",methods=["GET","POST"])
 def login():
     if request.method == "GET":
         return render_template("index.html")
     else:
-         if "bob" == request.form["username"] and \
-             "123" == request.form["password"]:
-             return "Hello" + "bob"
+         con = sqlite3.connect("login.db")
+         cur = con.cursor()
+         hash = hashlib.sha256(request.form["password"].encode()).hexdigest()                
+         cur.execute("SELECT USERNAME FROM LOGIN WHERE USERNAME=? AND PASSWORD=?",
+                    (request.form["username"],hash))
+         user = cur.fetchone()
+         if user:
+             return "Hello" + user[0]
          else:
              return "login failed"
 
