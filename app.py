@@ -1,8 +1,8 @@
-from flask import Flask, render_template,request
+from flask import Flask, render_template,request,session
 import sqlite3
 import hashlib
 app = Flask(__name__)
-
+app.secret_key = "any random string"
 con = sqlite3.connect("login.db")
 cur = con.cursor()
 cur.execute("""CREATE TABLE IF NOT EXISTS LOGIN
@@ -38,9 +38,19 @@ def login():
                     (request.form["username"],hash))
          user = cur.fetchone()
          if user:
-             return "Hello" + user[0]
+             session["username"] = request.form["username"]
+             return render_template("welcome.html")
          else:
              return "login failed"
+
+@app.route("/w")
+def welcome():
+    return render_template("welcome.html")
+
+@app.route("/logout")
+def logout():
+    session.pop("username",None)
+    return render_template("index.html")
 
 if __name__ == "__main__":
     app.run(debug=True)
